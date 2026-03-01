@@ -63,18 +63,30 @@ st.subheader("AI-powered restaurant suggestions using real Zomato data.")
 def load_data():
     path = Path("data/processed/zomato_clean.parquet")
     if not path.exists():
-        with st.status("Data not found. Running Phase 1 Preprocessing (this may take a minute)..."):
-            try:
-                run_phase1_preprocessing(output_path=path)
-                st.success("Data processed successfully!")
-            except Exception as e:
-                st.error(f"Error during preprocessing: {e}")
-                return None
+        return None
     return pd.read_parquet(path)
+
+# Initialize data session state
+if "data_initialized" not in st.session_state:
+    st.session_state.data_initialized = False
 
 df = load_data()
 
-if df is not None:
+if df is None and not st.session_state.data_initialized:
+    st.info("👋 Welcome! This application requires a processed dataset to provide recommendations.")
+    col1, col2 = st.columns([1, 2])
+    with col1:
+        if st.button("🚀 Initialize Dataset", use_container_width=True):
+            path = Path("data/processed/zomato_clean.parquet")
+            with st.status("Downloading and processing data (this may take a minute)..."):
+                try:
+                    run_phase1_preprocessing(output_path=path)
+                    st.session_state.data_initialized = True
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Error during preprocessing: {e}")
+    st.stop()
+elif df is not None:
     # Sidebar Filters
     st.sidebar.header("Filters")
     

@@ -11,6 +11,8 @@ try:
 except ImportError:  # pragma: no cover - handled by environment setup
     load_dataset = None  # type: ignore[assignment]
 
+import gc
+
 
 DATASET_NAME = "ManikaSaini/zomato-restaurant-recommendation"
 
@@ -28,7 +30,19 @@ def load_raw_zomato_dataset(split: str = "train") -> pd.DataFrame:
         )
 
     ds = load_dataset(DATASET_NAME, split=split)
-    return ds.to_pandas()
+    df = ds.to_pandas()
+    
+    # Memory optimization: Keep only necessary columns immediately
+    essential_cols = [
+        "name", "location", "cuisines", "approx_cost(for two people)", 
+        "rate", "listed_in(city)", "restaurant_id", "url"
+    ]
+    existing_cols = [c for c in essential_cols if c in df.columns]
+    df = df[existing_cols].copy()
+    
+    del ds
+    gc.collect()
+    return df
 
 
 def _detect_price_column(df: pd.DataFrame) -> Optional[str]:
@@ -188,7 +202,8 @@ def clean_restaurant_dataframe(df: pd.DataFrame) -> pd.DataFrame:
 
     # Deduplicate restaurants
     df = _deduplicate_restaurants(df)
-
+    
+    gc.collect()
     return df
 
 
@@ -221,7 +236,16 @@ def run_phase1_preprocessing(
     """
     raw_df = load_raw_zomato_dataset(split=split)
     clean_df = clean_restaurant_dataframe(raw_df)
-    return save_processed_dataset(clean_df, output_path)
+    
+    del raw_df
+    gc.collect()
+    
+    path = save_processed_dataset(clean_df, output_path)
+    
+    del clean_df
+    gc.collect()
+    
+    return path
 
 
 __all__ = [
