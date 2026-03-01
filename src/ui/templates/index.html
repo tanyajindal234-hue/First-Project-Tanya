@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Zomato AI Recommendation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root {
+        --primary: #e23744;
+        --primary-dark: #b0202b;
+        --bg: #f8f8f8;
+        --text-main: #1c1c1c;
+        --text-muted: #686b78;
+        --card-bg: #ffffff;
+        --border-subtle: #e8e8e8;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        background: var(--bg);
+        color: var(--text-main);
+      }
+
+      .hero {
+        background: linear-gradient(
+            rgba(0, 0, 0, 0.4),
+            rgba(0, 0, 0, 0.6)
+          ),
+          url("https://b.zmtcdn.com/data/pictures/9/19587679/aa5e592e088896d8f2b9d3c31a01d10e.jpg?fit=around|1360:1360&crop=1360:768;*,*")
+            center/cover no-repeat;
+        color: #fff;
+        padding: 40px 16px 32px;
+        text-align: center;
+      }
+
+      .hero-inner {
+        max-width: 960px;
+        margin: 0 auto;
+      }
+
+      .hero-title {
+        font-size: 36px;
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
+
+      .hero-subtitle {
+        font-size: 16px;
+        font-weight: 400;
+        color: #f5f5f5;
+        margin-bottom: 24px;
+      }
+
+      .search-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        background: #fff;
+        border-radius: 12px;
+        padding: 8px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      }
+
+      .search-input {
+        flex: 1 1 200px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 8px;
+        background: #f8f8f8;
+      }
+
+      .search-input label {
+        font-size: 12px;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      .search-input input {
+        border: none;
+        outline: none;
+        background: transparent;
+        width: 100%;
+        font-size: 14px;
+        color: var(--text-main);
+      }
+
+      .search-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        flex: 0 0 auto;
+        gap: 8px;
+      }
+
+      .btn-primary {
+        background: var(--primary);
+        border: none;
+        color: #fff;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s ease;
+      }
+
+      .btn-primary:hover {
+        background: var(--primary-dark);
+      }
+
+      .content {
+        max-width: 960px;
+        margin: 24px auto 40px;
+        padding: 0 16px;
+      }
+
+      .filters-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      .filter-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--border-subtle);
+        background: #fff;
+        font-size: 12px;
+        color: var(--text-muted);
+      }
+
+      .filter-chip span {
+        font-weight: 600;
+        color: var(--text-main);
+      }
+
+      .results-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+      }
+
+      .results-header h2 {
+        font-size: 20px;
+        margin: 0;
+      }
+
+      .results-header small {
+        color: var(--text-muted);
+      }
+
+      .results-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 16px;
+      }
+
+      .card {
+        background: var(--card-bg);
+        border-radius: 12px;
+        padding: 12px 12px 14px;
+        border: 1px solid #f0f0f0;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+      }
+
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 6px;
+      }
+
+      .card-title {
+        font-weight: 600;
+        font-size: 16px;
+        margin: 0;
+      }
+
+      .card-location {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-bottom: 4px;
+      }
+
+      .badge-rating {
+        background: #267e3e;
+        color: #fff;
+        border-radius: 6px;
+        padding: 2px 6px;
+        font-size: 12px;
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+      }
+
+      .card-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+      }
+
+      .card-cuisines {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+      }
+
+      .card-reason {
+        font-size: 12px;
+        color: #3d4152;
+      }
+
+      .empty-state,
+      .error-state {
+        text-align: center;
+        color: var(--text-muted);
+        font-size: 14px;
+        margin-top: 24px;
+      }
+
+      .error-state {
+        color: #d32f2f;
+      }
+
+      @media (max-width: 640px) {
+        .hero-title {
+          font-size: 28px;
+        }
+        .search-bar {
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <!-- React + Babel for a simple React-powered UI without a separate build step -->
+    <script
+      crossorigin
+      src="https://unpkg.com/react@18/umd/react.development.js"
+    ></script>
+    <script
+      crossorigin
+      src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"
+    ></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script type="text/babel">
+      {% raw %}
+      const { useState, useEffect } = React;
+
+      function App() {
+        const [places, setPlaces] = useState([]);
+        const [selectedPlace, setSelectedPlace] = useState("");
+        const [cuisinesInput, setCuisinesInput] = useState("");
+        const [rating, setRating] = useState("");
+        const [priceMin, setPriceMin] = useState("");
+        const [priceMax, setPriceMax] = useState("");
+        const [loading, setLoading] = useState(false);
+        const [error, setError] = useState("");
+        const [recommendations, setRecommendations] = useState([]);
+
+        useEffect(() => {
+          // Load distinct places for dropdown
+          fetch("/api/v1/places")
+            .then((resp) => resp.json())
+            .then((data) => {
+              if (Array.isArray(data)) {
+                setPlaces(data);
+              }
+            })
+            .catch(() => {
+              // Non-fatal: UI can still work with free-text location
+            });
+        }, []);
+
+        function buildPayload() {
+          const cuisines =
+            cuisinesInput.trim().length === 0
+              ? []
+              : cuisinesInput
+                  .split(",")
+                  .map((c) => c.trim())
+                  .filter(Boolean);
+
+          return {
+            place: selectedPlace || null,
+            cuisines,
+            rating: rating ? Number(rating) : null,
+            min_price: priceMin ? Number(priceMin) : null,
+            max_price: priceMax ? Number(priceMax) : null,
+          };
+        }
+
+        async function onSubmit(e) {
+          e.preventDefault();
+          setError("");
+          setLoading(true);
+          setRecommendations([]);
+
+          const payload = buildPayload();
+
+          try {
+            const resp = await fetch("/api/v1/recommendations", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            });
+
+            if (!resp.ok) {
+              const text = await resp.text();
+              throw new Error(
+                text || resp.statusText || "Failed to fetch recommendations",
+              );
+            }
+
+            const data = await resp.json();
+            setRecommendations(data.recommendations || []);
+          } catch (err) {
+            setError(
+              err.message ||
+                "Something went wrong while fetching recommendations.",
+            );
+          } finally {
+            setLoading(false);
+          }
+        }
+
+        const hasResults = recommendations && recommendations.length > 0;
+
+        return (
+          <>
+            <header className="hero">
+              <div className="hero-inner">
+                <div className="hero-title">Zomato AI Recommendation</div>
+                <div className="hero-subtitle">
+                  AI-powered restaurant suggestions using real Zomato data.
+                </div>
+                <form className="search-bar" onSubmit={onSubmit}>
+                  <div className="search-input">
+                    <div>
+                      <label htmlFor="place-select">Location</label>
+                      <select
+                        id="place-select"
+                        value={selectedPlace}
+                        onChange={(e) => setSelectedPlace(e.target.value)}
+                        style={{
+                          border: "none",
+                          outline: "none",
+                          background: "transparent",
+                          width: "100%",
+                          fontSize: "14px",
+                          color: "var(--text-main)",
+                        }}
+                      >
+                        <option value="">All locations</option>
+                        {places.map((p) => (
+                          <option key={p} value={p}>
+                            {p}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="search-input">
+                    <div>
+                      <label htmlFor="cuisines-input">
+                        Cuisines (optional)
+                      </label>
+                      <input
+                        id="cuisines-input"
+                        type="text"
+                        placeholder="e.g. North Indian, Chinese"
+                        value={cuisinesInput}
+                        onChange={(e) => setCuisinesInput(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="search-input">
+                    <div>
+                      <label htmlFor="rating-input">Min Rating</label>
+                      <input
+                        id="rating-input"
+                        type="number"
+                        min="0"
+                        max="5"
+                        step="0.1"
+                        placeholder="e.g. 4.0"
+                        value={rating}
+                        onChange={(e) => setRating(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="search-input">
+                    <div>
+                      <label>Price Range</label>
+                      <input
+                        id="price-min-input"
+                        type="number"
+                        min="0"
+                        step="50"
+                        placeholder="Min"
+                        style={{ width: "70px" }}
+                        value={priceMin}
+                        onChange={(e) => setPriceMin(e.target.value)}
+                      />
+                      <input
+                        id="price-max-input"
+                        type="number"
+                        min="0"
+                        step="50"
+                        placeholder="Max"
+                        style={{ width: "70px" }}
+                        value={priceMax}
+                        onChange={(e) => setPriceMax(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="search-actions">
+                    <button
+                      type="submit"
+                      className="btn-primary"
+                      disabled={loading}
+                    >
+                      {loading ? "Finding..." : "Find restaurants"}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </header>
+
+            <main className="content">
+              <div className="results-header">
+                <h2>Restaurant recommendations</h2>
+                <small>
+                  {loading
+                    ? "Fetching recommendations..."
+                    : hasResults
+                      ? `${recommendations.length} restaurants found`
+                      : "Use the search above to get started."}
+                </small>
+              </div>
+
+              {error && <div className="error-state">{error}</div>}
+              {!error && !loading && !hasResults && (
+                <div className="empty-state">
+                  We couldn't find matching restaurants. Try relaxing your
+                  filters or choosing a different location.
+                </div>
+              )}
+
+              <div className="results-grid">
+                {recommendations.map((r) => {
+                  const ratingBadge =
+                    typeof r.rating === "number" ? (
+                      <span className="badge-rating">
+                        {r.rating.toFixed(1)} ★
+                      </span>
+                    ) : null;
+                  const priceText =
+                    typeof r.price === "number"
+                      ? `₹${r.price.toFixed(0)}`
+                      : "—";
+                  const cuisines =
+                    Array.isArray(r.cuisines) && r.cuisines.length > 0
+                      ? r.cuisines.join(", ")
+                      : "";
+
+                  // Simple one-line human-friendly recommendation
+                  const reasonParts = [];
+                  if (cuisines) {
+                    reasonParts.push(`Good ${cuisines} option`);
+                  } else {
+                    reasonParts.push("Good option");
+                  }
+                  if (r.location || selectedPlace) {
+                    reasonParts.push(`in ${r.location || selectedPlace}`);
+                  }
+                  if (typeof r.rating === "number") {
+                    reasonParts.push(`rated ${r.rating.toFixed(1)}`);
+                  }
+                  const reason = reasonParts.join(" ");
+
+                  return (
+                    <article className="card" key={`${r.name}-${r.location}`}>
+                      <header className="card-header">
+                        <div>
+                          <h3 className="card-title">{r.name}</h3>
+                          <div className="card-location">
+                            {r.location || ""}
+                          </div>
+                        </div>
+                        {ratingBadge}
+                      </header>
+                      <div className="card-meta">
+                        <div>{cuisines}</div>
+                        <div>{priceText} for two (approx)</div>
+                      </div>
+                      <div className="card-reason">{reason}</div>
+                    </article>
+                  );
+                })}
+              </div>
+            </main>
+          </>
+        );
+      }
+
+      const rootElement = document.getElementById("root");
+      const root = ReactDOM.createRoot(rootElement);
+      root.render(<App />);
+      {% endraw %}
+    </script>
+  </body>
+</html>
+

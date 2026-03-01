@@ -1,0 +1,14 @@
+# Git Ignore
+data/
+.env
+__pycache__/
+.pytest_cache/
+*.pyc
+.antigravity/
+.agent/
+.agents/
+brain/
+tmp/
+node_modules/
+dist/
+.streamlit/
