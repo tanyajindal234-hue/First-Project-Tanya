@@ -6,8 +6,6 @@ from dotenv import load_dotenv
 
 from src.core.recommendation_engine import UserPreference, get_candidate_restaurants
 from src.llm.orchestrator import generate_llm_recommendations
-from src.llm.gemini_client import GeminiClient
-from src.data_access.phase1_preprocessing import run_phase1_preprocessing
 
 # Load environment variables
 load_dotenv()
@@ -80,6 +78,8 @@ if df is None and not st.session_state.data_initialized:
             path = Path("data/processed/zomato_clean.parquet")
             with st.status("Downloading and processing data (this may take a minute)..."):
                 try:
+                    # Heavy import delayed until button click
+                    from src.data_access.phase1_preprocessing import run_phase1_preprocessing
                     run_phase1_preprocessing(output_path=path)
                     st.session_state.data_initialized = True
                     st.rerun()

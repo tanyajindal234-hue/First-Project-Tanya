@@ -30,15 +30,16 @@ def load_raw_zomato_dataset(split: str = "train") -> pd.DataFrame:
         )
 
     ds = load_dataset(DATASET_NAME, split=split)
-    df = ds.to_pandas()
     
-    # Memory optimization: Keep only necessary columns immediately
+    # Memory optimization: Select essential columns BEFORE converting to pandas
     essential_cols = [
         "name", "location", "cuisines", "approx_cost(for two people)", 
-        "rate", "listed_in(city)", "restaurant_id", "url"
+        "rate", "listed_in(city)", "restaurant_id"
     ]
-    existing_cols = [c for c in essential_cols if c in df.columns]
-    df = df[existing_cols].copy()
+    available_cols = [c for c in essential_cols if c in ds.column_names]
+    ds = ds.select_columns(available_cols)
+    
+    df = ds.to_pandas()
     
     del ds
     gc.collect()
