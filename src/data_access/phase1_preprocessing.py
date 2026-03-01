@@ -31,18 +31,23 @@ def load_raw_zomato_dataset(split: str = "train") -> pd.DataFrame:
 
     ds = load_dataset(DATASET_NAME, split=split)
     
-    # Memory optimization: Select essential columns BEFORE converting to pandas
+    # Memory optimization: Select essential columns BEFORE ANY CONVERSION
     essential_cols = [
         "name", "location", "cuisines", "approx_cost(for two people)", 
         "rate", "listed_in(city)", "restaurant_id"
     ]
     available_cols = [c for c in essential_cols if c in ds.column_names]
+    
+    # Prune the dataset at the arrow level
     ds = ds.select_columns(available_cols)
     
+    # Convert to pandas - this is the potential spike point, but now on pruned data
     df = ds.to_pandas()
     
+    # Immediate cleanup
     del ds
     gc.collect()
+    
     return df
 
 

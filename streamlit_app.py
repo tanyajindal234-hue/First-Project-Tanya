@@ -1,19 +1,35 @@
 import streamlit as st
-import pandas as pd
-from pathlib import Path
-import os
-from dotenv import load_dotenv
 
+# Move all other imports inside functions to pass health checks instantly
 
-# Load environment variables
-load_dotenv()
+@st.cache_data
+def load_data():
+    from pathlib import Path
+    import pandas as pd
+    path = Path("data/processed/zomato_clean.parquet")
+    if not path.exists():
+        return None
+    
+    # Memory optimization: Read only necessary columns from parquet
+    essential_cols = [
+        "name", "location", "cuisines", "price", "rating", "cuisines_clean"
+    ]
+    try:
+        return pd.read_parquet(path, columns=essential_cols)
+    except Exception:
+        # Fallback if columns don't match (e.g. older parquet version)
+        return pd.read_parquet(path)
 
-# Page configuration
+# Page configuration - RUN AS EARLY AS POSSIBLE
 st.set_page_config(
     page_title="Zomato AI Recommendation",
     page_icon="🍴",
     layout="wide",
 )
+
+# Load environment variables (delayed)
+from dotenv import load_dotenv
+load_dotenv()
 
 # Custom CSS for Zomato branding
 st.markdown("""
@@ -54,22 +70,6 @@ st.markdown("""
 # App Header
 st.title("🍴 Zomato AI Recommendation")
 st.subheader("AI-powered restaurant suggestions using real Zomato data.")
-
-@st.cache_data
-def load_data():
-    path = Path("data/processed/zomato_clean.parquet")
-    if not path.exists():
-        return None
-    
-    # Memory optimization: Read only necessary columns from parquet
-    essential_cols = [
-        "name", "location", "cuisines", "price", "rating", "cuisines_clean"
-    ]
-    try:
-        return pd.read_parquet(path, columns=essential_cols)
-    except Exception:
-        # Fallback if columns don't match (e.g. older parquet version)
-        return pd.read_parquet(path)
 
 # Initialize data session state
 if "data_initialized" not in st.session_state:
