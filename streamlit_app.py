@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from src.core.recommendation_engine import UserPreference, get_candidate_restaurants
 from src.llm.orchestrator import generate_llm_recommendations
 from src.llm.gemini_client import GeminiClient
+from src.data_access.phase1_preprocessing import run_phase1_preprocessing
 
 # Load environment variables
 load_dotenv()
@@ -62,8 +63,13 @@ st.subheader("AI-powered restaurant suggestions using real Zomato data.")
 def load_data():
     path = Path("data/processed/zomato_clean.parquet")
     if not path.exists():
-        st.error(f"Processed dataset not found at {path}. Please run Phase 1 preprocessing.")
-        return None
+        with st.status("Data not found. Running Phase 1 Preprocessing (this may take a minute)..."):
+            try:
+                run_phase1_preprocessing(output_path=path)
+                st.success("Data processed successfully!")
+            except Exception as e:
+                st.error(f"Error during preprocessing: {e}")
+                return None
     return pd.read_parquet(path)
 
 df = load_data()
