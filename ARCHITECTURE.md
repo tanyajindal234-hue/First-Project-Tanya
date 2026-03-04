@@ -226,10 +226,12 @@
     - Feedback loops (thumbs up/down) to improve ranking.
     - Multi-language support for prompts and responses.
     - More sophisticated retrieval (e.g., vector search over restaurant descriptions/reviews).
+    - Rate limiting and request throttling for the public API.
+    - Integration with external rating platforms (e.g., TripAdvisor, Yelp) for data enrichment.
 - **Deliverables**:
-  - Deployment configuration (container, scripts, or infra-as-code placeholder).
-  - Operations documentation (how to run, configure, and monitor the service).
-  - Backlog of future feature ideas.
+    - Deployment configuration (Dockerfile, health checks).
+    - Operations documentation (`DEPLOYMENT.md`).
+    - Backlog of future feature ideas.
 
 ---
 
