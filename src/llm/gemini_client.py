@@ -14,7 +14,7 @@ except ImportError:  # pragma: no cover - handled gracefully at runtime
     genai = None  # type: ignore[assignment]
 
 
-GEMINI_MODEL_NAME_DEFAULT = "gemini-2.5-pro"
+GEMINI_MODEL_NAME_DEFAULT = "gemini-1.5-pro"
 
 
 @dataclass
