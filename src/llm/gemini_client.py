@@ -14,7 +14,7 @@ GEMINI_MODEL_NAME_DEFAULT = "models/gemini-2.5-flash"
 @dataclass
 class GeminiClient:
     """
-    Thin wrapper around Gemini LLM using modern google-genai.
+    Thin wrapper around Gemini LLM using modern google-genai SDK.
     """
     model_name: str = GEMINI_MODEL_NAME_DEFAULT
 
@@ -30,14 +30,15 @@ class GeminiClient:
                 "GEMINI_API_KEY is not set. Add it to your environment or Streamlit Secrets."
             )
 
-        genai.configure(api_key=api_key)
+        # Modern SDK: create a client with the API key
+        self.client = genai.Client(api_key=api_key)
 
     def generate(self, system_prompt: str, user_prompt: str) -> str:
         """
         Generate text using Gemini (modern google-genai).
         """
         try:
-            response = genai.responses.create(
+            response = self.client.responses.create(
                 model=self.model_name,
                 input=f"{system_prompt}\n\n{user_prompt}",
                 temperature=0.7,
