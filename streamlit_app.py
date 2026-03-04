@@ -91,6 +91,8 @@ try:
                         from src.data_access.phase1_preprocessing import run_phase1_preprocessing
                         run_phase1_preprocessing(output_path=path)
                         st.session_state.data_initialized = True
+                        # Clear cache so load_data() finds the new file
+                        st.cache_data.clear()
                         st.rerun()
                     except Exception as e:
                         st.error(f"Error during preprocessing: {e}")
@@ -180,9 +182,14 @@ try:
                             </div>
                             """, unsafe_allow_html=True)
 
-    else:
-        st.info("Please ensure Phase 1 has been run and data is available at `data/processed/zomato_clean.parquet`.")
+# Note: We do NOT have a final 'else' here to avoid showing "Please ensure Phase 1 has been run" 
+# while the app is stopping or rerunning.
 
 except Exception as application_error:
+    # Do not catch Streamlit's internal exceptions (used for control flow)
+    import streamlit.runtime.scriptrunner as sr
+    if isinstance(application_error, (sr.StopException, sr.RerunException)):
+        raise application_error
+        
     st.error("⚠️ An unexpected error occurred while running the application.")
     st.exception(application_error)
