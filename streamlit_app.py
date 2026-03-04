@@ -70,7 +70,7 @@ try:
                 run_phase1_preprocessing(output_path=path)
                 st.session_state.data_initialized = True
                 st.cache_data.clear()
-                st.experimental_rerun()
+                st.rerun()
 
     elif df is not None:
         # Sidebar Filters
