@@ -5,59 +5,59 @@ from dataclasses import dataclass
 from typing import Optional
 
 from dotenv import load_dotenv
-
 load_dotenv()
 
-try:  # pragma: no cover - exercised indirectly
-    import google.generativeai as genai
-except ImportError:  # pragma: no cover - handled gracefully at runtime
+try:
+    import google.genai as genai
+except ImportError:
     genai = None  # type: ignore[assignment]
 
-
-GEMINI_MODEL_NAME_DEFAULT = "gemini-2.5-pro"
+# Default Gemini model
+GEMINI_MODEL_NAME_DEFAULT = "models/gemini-2.5-flash"
 
 
 @dataclass
 class GeminiClient:
     """
-    Thin wrapper around the Gemini LLM.
-
-    It expects an API key in the environment variable `GEMINI_API_KEY`
-    (loaded from `.env` if present).
+    Thin wrapper around Gemini LLM using google.genai SDK.
+    Expects GEMINI_API_KEY in environment or .env.
     """
 
     model_name: str = GEMINI_MODEL_NAME_DEFAULT
-    _model: Optional["genai.GenerativeModel"] = None  # type: ignore[name-defined]
+    _client: Optional[genai.Client] = None
 
     def __post_init__(self) -> None:
         if genai is None:
             raise RuntimeError(
-                "google-generativeai is not installed. "
-                "Install it with `pip install google-generativeai`."
+                "google-genai is not installed. Install with `pip install google-genai`."
             )
 
         api_key = os.getenv("GEMINI_API_KEY")
         if not api_key:
             raise RuntimeError(
-                "GEMINI_API_KEY is not set. "
-                "Add it to your environment or `.env` file."
+                "GEMINI_API_KEY is not set. Add it to your environment or Streamlit Secrets."
             )
 
-        genai.configure(api_key=api_key)
-        self._model = genai.GenerativeModel(self.model_name)
+        self._client = genai.Client(api_key=api_key)
 
     def generate(self, system_prompt: str, user_prompt: str) -> str:
         """
-        Generate a completion using Gemini and return the text.
+        Generate content using Gemini and return plain text.
         """
-        if self._model is None:
-            raise RuntimeError("Gemini client is not initialized correctly.")
+        if self._client is None:
+            raise RuntimeError("Gemini client not initialized.")
 
-        response = self._model.generate_content(
-            [system_prompt, user_prompt],
+        # Gemini models now use `responses.create` for completions
+        response = self._client.responses.create(
+            model=self.model_name,
+            # Provide prompts as a single string
+            input=f"{system_prompt}\n\n{user_prompt}",
+            temperature=0.7,
+            max_output_tokens=500,
         )
-        return getattr(response, "text", "") or ""
 
-
-__all__ = ["GeminiClient", "GEMINI_MODEL_NAME_DEFAULT"]
-
+        # Extract text from response safely
+        try:
+            return response.output_text  # modern genai attribute
+        except AttributeError:
+            return ""
