@@ -78,7 +78,8 @@ if "data_initialized" not in st.session_state:
 
 try:
     df = load_data()
-
+    st.write("Number of rows in dataset:", len(df))
+    st.write(df.head())
     if df is None and not st.session_state.data_initialized:
         st.info("👋 Welcome! This application requires a processed dataset to provide recommendations.")
         col1, col2 = st.columns([1, 2])
